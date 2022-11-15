@@ -1,6 +1,6 @@
 {
   "title": "[${service}:${environment}]Basic Dashboard",
-  "description": "# MAINTAINED BY TERRAFORM [HERE](https://github.com/Maersk-Global/${service}/tree/main/observability/dd/modules/dashboards/jsons/basic_dashboard.json)\n\n## Basic dashboard\n\nThis dashboard contains DD widgets that are common for an http service wrapped as a k8s pod. \n\n### Contains following widgets \n\n- Log Error Rate\n- CPU, RAM usage\n- HTTP Error Rate \n- K8s pod uptime statistics. ",
+  "description": "# MAINTAINED BY TERRAFORM [HERE](https://github.com/mask-Global/${service}/tree/main/observability/dd/modules/dashboards/jsons/basic_dashboard.json)\n\n## Basic dashboard\n\nThis dashboard contains DD widgets that are common for an http service wrapped as a k8s pod. \n\n### Contains following widgets \n\n- Log Error Rate\n- CPU, RAM usage\n- HTTP Error Rate \n- K8s pod uptime statistics. ",
   "widgets": [
     {
       "definition": {
