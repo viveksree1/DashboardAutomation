@@ -1,0 +1,31 @@
+{
+  "name": "[${service}:${environment}]Less then 50% of pods are available  ",
+  "type": "query alert",
+  "query": "avg(last_5m):avg:kubernetes_state.deployment.replicas_available{kube_cluster_name:${cluster},kube_namespace:${namespace},kube_deployment:${service}-*} / avg:kubernetes_state.deployment.replicas_desired{kube_namespace:${namespace},kube_deployment:${service}-*} < 0.5",
+  "message": " Please check why not 100% of pods are in the healthy state.\n \n Try to identify the reason starting from the infrastructure issues:\n - are there any ongoing infra issues? \n - is resource allocation valid for this deployment?\n - what are the last log messages before going to the unhealthy state? \n \n Possible resolution:\n- rollback\n- restart\n- fix bug\n- cancel the ongoing deployment \n@${channel}",
+  "tags": [
+    "alcl",
+    "alice",
+    "Air&LCL",
+    "terraform",
+    "${service}",
+    "cluster:${cluster}",
+    "env:${environment}"
+  ],
+  "options": {
+    "thresholds": {
+      "critical": 0.5,
+      "warning": 0.6,
+      "critical_recovery": 0.65,
+      "warning_recovery": 0.7
+    },
+    "notify_audit": false,
+    "require_full_window": false,
+    "notify_no_data": true,
+    "no_data_timeframe": 10,
+    "renotify_interval": 30,
+    "escalation_message": "Re-notification of non all pods are available alert. Please take an action or mute.",
+    "renotify_statuses": ["alert", "no data"]
+  },
+  "priority": 1
+}

@@ -1,0 +1,32 @@
+{
+  "name": "[${service}:${environment}]CPU usage is above the threshold ",
+  "type": "query alert",
+  "query": "avg(last_5m):(avg:kubernetes.cpu.usage.total{kube_cluster_name:${cluster},kube_namespace:${namespace},kube_service:alcl-springboot-reactor-template} by {pod_name} / avg:kubernetes.cpu.limits{kube_namespace:${namespace},kube_service:alcl-springboot-reactor-template} by {pod_name}) / 1000000000 > 0.8",
+  "message": "The CPU usage level has reached the threshold.\nPlease check the reason (new deployment, high load, bug, etc.). \n\nPossible actions:\n\n- rollback the version\n- scale up (change the autoscale setting)\n- fix the bug\n \n@${channel}",
+  "tags": [
+    "alcl",
+    "alice",
+    "Air&LCL",
+    "terraform",
+    "env:dev",
+    "${service}",
+    "cluster:${cluster}"
+  ],
+  "options": {
+    "thresholds": {
+      "critical": 0.8,
+      "warning": 0.7,
+      "critical_recovery": 0.6,
+      "warning_recovery": 0.5
+    },
+    "notify_audit": false,
+    "require_full_window": false,
+    "notify_no_data": true,
+    "no_data_timeframe": 10,
+    "renotify_interval": 30,
+    "escalation_message": "Re-notification message about high CPU load. Please take an action or mute the monitor.",
+    "new_group_delay": 60,
+    "renotify_statuses": ["alert", "no data"]
+  },
+  "priority": 1
+}

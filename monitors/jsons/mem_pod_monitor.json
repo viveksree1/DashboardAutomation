@@ -1,0 +1,33 @@
+{
+  "name": "[${service}:${environment}]Memory usage is above the threshold ",
+  "type": "query alert",
+  "query": "avg(last_5m):avg:kubernetes.memory.usage{kube_cluster_name:${cluster},kube_namespace:${namespace},kube_service:${service}-*} by {pod_name} / avg:kubernetes.memory.limits{kube_namespace:${namespace},kube_service:${service}-*} by {pod_name} > 0.8",
+  "message": "Service is experiencing high memory consumption. Please take a look at why (recent deployment, bug, high load).\n \n Possible resolutions:\n - rollback deployment \n - restart deployment(investigate the memory leak)\n -  fix the bag\n -  scale out(chenge the autoscaler)\n -  change memory requests (if you feel it is a general behaviour)\n @${channel}\n ",
+  "tags": [
+    "alcl",
+    "Air&LCL",
+    "alice",
+    "terraform",
+    "env:${environment}",
+    "cluster:${cluster}",
+    "${service}"
+  ],
+  "options": {
+    "thresholds": {
+      "critical": 0.8,
+      "warning": 0.6,
+      "critical_recovery": 0.5,
+      "warning_recovery": 0.4
+    },
+    "notify_audit": false,
+    "require_full_window": false,
+    "notify_no_data": true,
+    "no_data_timeframe": 10,
+    "renotify_interval": 30,
+    "escalation_message": "Re-notification of the high memory usage alert. Please take an action or mute.",
+    "new_group_delay": 60,
+    "timeout_h": 0,
+    "renotify_statuses": ["alert", "no data"]
+  },
+  "priority": 1
+}

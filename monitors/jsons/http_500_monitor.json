@@ -1,0 +1,40 @@
+{
+  "name": "[${service}:${environment}]Too many responses with 5** code ",
+  "type": "log alert",
+  "query": "logs(\"kube_cluster_name:${cluster} service:nginx-ingress @proxy.name:${namespace}-${service}-80 @http.status_code:>=500\").index(\"*\").rollup(\"count\").last(\"5m\") > 100",
+  "message": "There are too many responses with HTTP status 500 or above (>=500). Please check what is the state of the service.  \n\nPlease check the logs of the ingress [here](https://maersk-bridge.datadoghq.eu/logs?query=service%3Anginx-ingress%20%40proxy.name%3A${namespace}-${service}-80&cols=host%2Cservice&index=&messageDisplay=inline&stream_sort=desc&from_ts=1641195992681&to_ts=1641196892681&live=true)\n\nPlease check the logs of the service [here](https://maersk-bridge.datadoghq.eu/logs?query=env%3A${environment}%20service%3A${service}&cols=host%2Cservice&index=&messageDisplay=inline&stream_sort=desc&from_ts=1641196151058&to_ts=1641197051058&live=true)\n\nPossible resolution strategy:\n\n- restart deployment (```kubectl rollout restart deploy/${service} -n ${namespace}```)\n- rollback the deployment\n- fix the error \n\n@teams-alcl-test-alerts",
+  "tags": [
+    "alcl",
+    "alice",
+    "Air&LCL",
+    "terraform",
+    "env:${environment}",
+    "cluster:${cluster}",
+    "${service}"
+  ],
+  "options": {
+    "thresholds": {
+      "critical": 100,
+      "period": {
+        "digit": 5,
+        "name": "5 minute average",
+        "no_data_timeframe": 10,
+        "seconds": 300,
+        "tense": "last",
+        "text": "5 minutes",
+        "unit": "minutes",
+        "value": "last_5m"
+      },
+      "timeAggregator": "avg",
+      "comparison": ">",
+      "warning": 60
+    },
+    "enable_logs_sample": true,
+    "notify_audit": false,
+    "restriction_query": null,
+    "escalation_message": "This is a re-notification of Too many responses with 5** code alert. \n\nYou have to act on it or mute it for a while(if you feel that it is being resolved).  \n\n@${channel}",
+    "renotify_interval": 30,
+    "renotify_statuses": ["alert"]
+  },
+  "priority": 1
+}

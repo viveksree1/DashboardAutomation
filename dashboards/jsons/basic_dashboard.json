@@ -1,0 +1,1074 @@
+{
+  "title": "[${service}:${environment}]Basic Dashboard",
+  "description": "# MAINTAINED BY TERRAFORM [HERE](https://github.com/Maersk-Global/${service}/tree/main/observability/dd/modules/dashboards/jsons/basic_dashboard.json)\n\n## Basic dashboard\n\nThis dashboard contains DD widgets that are common for an http service wrapped as a k8s pod. \n\n### Contains following widgets \n\n- Log Error Rate\n- CPU, RAM usage\n- HTTP Error Rate \n- K8s pod uptime statistics. ",
+  "widgets": [
+    {
+      "definition": {
+        "title": "Log Error Rate",
+        "type": "group",
+        "show_title": true,
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "title": "Instant Log Error Rate",
+              "title_size": "16",
+              "title_align": "left",
+              "type": "query_value",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "default_zero(query3 / query4)"
+                    }
+                  ],
+                  "conditional_formats": [
+                    {
+                      "comparator": ">",
+                      "palette": "white_on_red",
+                      "value": 0.1
+                    },
+                    {
+                      "comparator": ">=",
+                      "palette": "white_on_yellow",
+                      "value": 0.05
+                    },
+                    {
+                      "comparator": "<",
+                      "palette": "white_on_green",
+                      "value": 0.05
+                    }
+                  ],
+                  "response_format": "scalar",
+                  "queries": [
+                    {
+                      "search": {
+                        "query": "kube_cluster_name:${cluster} kube_namespace:${namespace} service:${service} status:error"
+                      },
+                      "data_source": "logs",
+                      "compute": {
+                        "aggregation": "count"
+                      },
+                      "name": "query3",
+                      "indexes": ["*"],
+                      "group_by": []
+                    },
+                    {
+                      "search": {
+                        "query": "kube_cluster_name:${cluster} kube_namespace:${namespace} service:${service}"
+                      },
+                      "data_source": "logs",
+                      "compute": {
+                        "aggregation": "count"
+                      },
+                      "name": "query4",
+                      "indexes": ["*"],
+                      "group_by": []
+                    }
+                  ]
+                }
+              ],
+              "autoscale": true,
+              "precision": 2
+            },
+            "layout": {
+              "x": 0,
+              "y": 0,
+              "width": 3,
+              "height": 3
+            }
+          },
+          {
+            "definition": {
+              "title": "Log Status Count",
+              "title_size": "16",
+              "title_align": "left",
+              "type": "query_table",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "default_zero(query1)",
+                      "cell_display_mode": "bar",
+                      "limit": {
+                        "count": 5,
+                        "order": "desc"
+                      }
+                    }
+                  ],
+                  "response_format": "scalar",
+                  "queries": [
+                    {
+                      "search": {
+                        "query": "kube_cluster_name:${cluster} kube_namespace:${namespace} service:${service}"
+                      },
+                      "data_source": "logs",
+                      "compute": {
+                        "aggregation": "count"
+                      },
+                      "name": "query1",
+                      "indexes": ["*"],
+                      "group_by": [
+                        {
+                          "facet": "status",
+                          "sort": {
+                            "aggregation": "count",
+                            "order": "desc"
+                          },
+                          "limit": 5
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "has_search_bar": "auto"
+            },
+            "layout": {
+              "x": 3,
+              "y": 0,
+              "width": 3,
+              "height": 3
+            }
+          },
+          {
+            "definition": {
+              "title": "Last Service Logs",
+              "title_size": "16",
+              "title_align": "left",
+              "type": "log_stream",
+              "indexes": [],
+              "query": "kube_cluster_name:${cluster} kube_namespace:${namespace} service:${service}",
+              "sort": {
+                "column": "time",
+                "order": "desc"
+              },
+              "columns": ["service", "status"],
+              "show_date_column": true,
+              "show_message_column": true,
+              "message_display": "expanded-md"
+            },
+            "layout": {
+              "x": 6,
+              "y": 0,
+              "width": 6,
+              "height": 6
+            }
+          },
+          {
+            "definition": {
+              "title": "Log Error Rate ",
+              "title_size": "16",
+              "title_align": "left",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "legend_columns": ["avg", "min", "max", "value", "sum"],
+              "type": "timeseries",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "alias": "errorRate",
+                      "formula": "default_zero(query3 / query4)"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "on_right_yaxis": false,
+                  "queries": [
+                    {
+                      "search": {
+                        "query": "kube_cluster_name:${cluster} kube_namespace:${namespace} service:${service} status:error"
+                      },
+                      "data_source": "logs",
+                      "compute": {
+                        "interval": 30000,
+                        "aggregation": "count"
+                      },
+                      "name": "query3",
+                      "indexes": ["*"],
+                      "group_by": []
+                    },
+                    {
+                      "search": {
+                        "query": "kube_cluster_name:${cluster} kube_namespace:${namespace} service:${service}"
+                      },
+                      "data_source": "logs",
+                      "compute": {
+                        "interval": 30000,
+                        "aggregation": "count"
+                      },
+                      "name": "query4",
+                      "indexes": ["*"],
+                      "group_by": []
+                    }
+                  ],
+                  "style": {
+                    "palette": "dog_classic",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "display_type": "line"
+                }
+              ],
+              "yaxis": {
+                "include_zero": true,
+                "scale": "linear",
+                "label": "",
+                "min": "auto",
+                "max": "auto"
+              },
+              "markers": []
+            },
+            "layout": {
+              "x": 0,
+              "y": 3,
+              "width": 6,
+              "height": 3
+            }
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": 12,
+        "height": 7
+      }
+    },
+    {
+      "definition": {
+        "title": "HTTP Error Rate",
+        "type": "group",
+        "show_title": true,
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "title": "Instant HTTP Error (5XX) Rate",
+              "title_size": "16",
+              "title_align": "left",
+              "type": "query_value",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "default_zero(query1 / query2)"
+                    }
+                  ],
+                  "conditional_formats": [
+                    {
+                      "comparator": ">",
+                      "palette": "white_on_red",
+                      "value": 0.2
+                    },
+                    {
+                      "comparator": ">=",
+                      "palette": "white_on_yellow",
+                      "value": 0.1
+                    },
+                    {
+                      "comparator": "<",
+                      "palette": "white_on_green",
+                      "value": 0.1
+                    }
+                  ],
+                  "response_format": "scalar",
+                  "queries": [
+                    {
+                      "search": {
+                        "query": "kube_cluster_name:${cluster} service:nginx-ingress @proxy.name:${namespace}-${service}-* @http.status_code:>=500"
+                      },
+                      "data_source": "logs",
+                      "compute": {
+                        "aggregation": "count"
+                      },
+                      "name": "query1",
+                      "indexes": ["*"],
+                      "group_by": []
+                    },
+                    {
+                      "search": {
+                        "query": "kube_cluster_name:${cluster} service:nginx-ingress @proxy.name:${namespace}-${service}-*"
+                      },
+                      "data_source": "logs",
+                      "compute": {
+                        "aggregation": "count"
+                      },
+                      "name": "query2",
+                      "indexes": ["*"],
+                      "group_by": []
+                    }
+                  ]
+                }
+              ],
+              "autoscale": true,
+              "precision": 2
+            },
+            "layout": {
+              "x": 0,
+              "y": 0,
+              "width": 3,
+              "height": 3
+            }
+          },
+          {
+            "definition": {
+              "title": "Calls per URL",
+              "title_size": "16",
+              "title_align": "left",
+              "type": "toplist",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1",
+                      "limit": {
+                        "count": 10,
+                        "order": "desc"
+                      }
+                    }
+                  ],
+                  "response_format": "scalar",
+                  "queries": [
+                    {
+                      "search": {
+                        "query": "kube_cluster_name:${cluster} service:nginx-ingress @proxy.name:${namespace}-${service}-* @http.status_code:>0"
+                      },
+                      "data_source": "logs",
+                      "compute": {
+                        "aggregation": "count"
+                      },
+                      "name": "query1",
+                      "indexes": ["*"],
+                      "group_by": [
+                        {
+                          "facet": "@http.url",
+                          "sort": {
+                            "aggregation": "count",
+                            "order": "desc"
+                          },
+                          "limit": 10
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "layout": {
+              "x": 3,
+              "y": 0,
+              "width": 3,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "HTTP Error (5XX) Rate",
+              "title_size": "16",
+              "title_align": "left",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "legend_columns": ["avg", "min", "max", "value", "sum"],
+              "type": "timeseries",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "default_zero(query1 / query2)"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "queries": [
+                    {
+                      "search": {
+                        "query": "kube_cluster_name:${cluster} service:nginx-ingress @proxy.name:${namespace}-${service}-* @http.status_code:>499"
+                      },
+                      "data_source": "logs",
+                      "compute": {
+                        "interval": 30000,
+                        "aggregation": "count"
+                      },
+                      "name": "query1",
+                      "indexes": ["*"],
+                      "group_by": []
+                    },
+                    {
+                      "search": {
+                        "query": "kube_cluster_name:${cluster} service:nginx-ingress @proxy.name:${namespace}-${service}-* @http.status_code:>0"
+                      },
+                      "data_source": "logs",
+                      "compute": {
+                        "interval": 30000,
+                        "aggregation": "count"
+                      },
+                      "name": "query2",
+                      "indexes": ["*"],
+                      "group_by": []
+                    }
+                  ],
+                  "style": {
+                    "palette": "dog_classic",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "display_type": "line"
+                }
+              ],
+              "yaxis": {
+                "include_zero": true,
+                "scale": "linear",
+                "label": "",
+                "min": "auto",
+                "max": "auto"
+              },
+              "markers": []
+            },
+            "layout": {
+              "x": 6,
+              "y": 0,
+              "width": 6,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "Amount of HTTP Calls Per Status",
+              "title_size": "16",
+              "title_align": "left",
+              "type": "toplist",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1",
+                      "limit": {
+                        "count": 10,
+                        "order": "desc"
+                      }
+                    }
+                  ],
+                  "response_format": "scalar",
+                  "queries": [
+                    {
+                      "search": {
+                        "query": "kube_cluster_name:${cluster} service:nginx-ingress @proxy.name:${namespace}-${service}-*"
+                      },
+                      "data_source": "logs",
+                      "compute": {
+                        "aggregation": "count"
+                      },
+                      "name": "query1",
+                      "indexes": ["*"],
+                      "group_by": [
+                        {
+                          "facet": "@http.status_code",
+                          "sort": {
+                            "aggregation": "count",
+                            "order": "desc"
+                          },
+                          "limit": 10
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "layout": {
+              "x": 3,
+              "y": 2,
+              "width": 3,
+              "height": 2
+            }
+          },
+          {
+            "definition": {
+              "title": "Last HTTP Logs",
+              "title_size": "16",
+              "title_align": "left",
+              "type": "log_stream",
+              "indexes": [],
+              "query": "kube_cluster_name:${cluster} service:nginx-ingress @proxy.name:${namespace}-${service}-*",
+              "sort": {
+                "column": "time",
+                "order": "desc"
+              },
+              "columns": ["@http.status_code", "@http.url"],
+              "show_date_column": true,
+              "show_message_column": true,
+              "message_display": "expanded-md"
+            },
+            "layout": {
+              "x": 6,
+              "y": 2,
+              "width": 6,
+              "height": 4
+            }
+          },
+          {
+            "definition": {
+              "title": "Instant Non 200 Rate",
+              "title_size": "16",
+              "title_align": "left",
+              "type": "query_value",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "default_zero(query1 / query2)"
+                    }
+                  ],
+                  "conditional_formats": [
+                    {
+                      "comparator": ">",
+                      "palette": "white_on_red",
+                      "value": 0.5
+                    },
+                    {
+                      "comparator": ">=",
+                      "palette": "white_on_yellow",
+                      "value": 0.3
+                    },
+                    {
+                      "comparator": "<",
+                      "palette": "white_on_green",
+                      "value": 0.3
+                    }
+                  ],
+                  "response_format": "scalar",
+                  "queries": [
+                    {
+                      "search": {
+                        "query": "kube_cluster_name:${cluster} service:nginx-ingress @http.status_code:(>299 OR <200) @proxy.name:${namespace}-${service}-*"
+                      },
+                      "data_source": "logs",
+                      "compute": {
+                        "aggregation": "count"
+                      },
+                      "name": "query1",
+                      "indexes": ["*"],
+                      "group_by": []
+                    },
+                    {
+                      "search": {
+                        "query": "kube_cluster_name:${cluster} service:nginx-ingress @http.status_code:>0 @proxy.name:${namespace}-${service}-*"
+                      },
+                      "data_source": "logs",
+                      "compute": {
+                        "aggregation": "count"
+                      },
+                      "name": "query2",
+                      "indexes": ["*"],
+                      "group_by": []
+                    }
+                  ]
+                }
+              ],
+              "autoscale": true,
+              "precision": 2
+            },
+            "layout": {
+              "x": 0,
+              "y": 3,
+              "width": 3,
+              "height": 3
+            }
+          },
+          {
+            "definition": {
+              "title": "5XX Errors Count Per URL",
+              "title_size": "16",
+              "title_align": "left",
+              "type": "toplist",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "default_zero(query1)",
+                      "limit": {
+                        "count": 10,
+                        "order": "desc"
+                      }
+                    }
+                  ],
+                  "response_format": "scalar",
+                  "queries": [
+                    {
+                      "search": {
+                        "query": "kube_cluster_name:${cluster} service:nginx-ingress @proxy.name:${namespace}-${service}-* ${namespace}-${service}-* @http.status_code:>=500"
+                      },
+                      "data_source": "logs",
+                      "compute": {
+                        "aggregation": "count"
+                      },
+                      "name": "query1",
+                      "indexes": ["*"],
+                      "group_by": [
+                        {
+                          "facet": "@http.url",
+                          "sort": {
+                            "aggregation": "count",
+                            "order": "desc"
+                          },
+                          "limit": 10
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "layout": {
+              "x": 3,
+              "y": 4,
+              "width": 3,
+              "height": 2
+            }
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 7,
+        "width": 12,
+        "height": 7
+      }
+    },
+    {
+      "definition": {
+        "title": "Resources",
+        "type": "group",
+        "show_title": true,
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "title": "Instant Deployment CPU Utilisation",
+              "title_size": "16",
+              "title_align": "left",
+              "type": "query_value",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "(query1 / query2) / 1000000000"
+                    }
+                  ],
+                  "conditional_formats": [
+                    {
+                      "comparator": ">",
+                      "palette": "white_on_red",
+                      "value": 0.9
+                    },
+                    {
+                      "comparator": ">=",
+                      "palette": "white_on_yellow",
+                      "value": 0.6
+                    },
+                    {
+                      "comparator": "<",
+                      "palette": "white_on_green",
+                      "value": 0.6
+                    }
+                  ],
+                  "response_format": "scalar",
+                  "queries": [
+                    {
+                      "query": "avg:kubernetes.cpu.usage.total{kube_cluster_name:${cluster},kube_namespace:${namespace},kube_service:${service}-*}",
+                      "data_source": "metrics",
+                      "name": "query1",
+                      "aggregator": "avg"
+                    },
+                    {
+                      "query": "avg:kubernetes.cpu.limits{kube_cluster_name:${cluster},kube_namespace:${namespace},kube_service:${service}-*}",
+                      "data_source": "metrics",
+                      "name": "query2",
+                      "aggregator": "avg"
+                    }
+                  ]
+                }
+              ],
+              "autoscale": true,
+              "precision": 2
+            },
+            "layout": {
+              "x": 0,
+              "y": 0,
+              "width": 3,
+              "height": 3
+            }
+          },
+          {
+            "definition": {
+              "title": "Pods/Deployment CPU Utilization",
+              "title_size": "16",
+              "title_align": "left",
+              "show_legend": true,
+              "legend_layout": "vertical",
+              "legend_columns": ["avg", "min", "max", "value", "sum"],
+              "type": "timeseries",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "alias": "Pods CPU Utilization",
+                      "formula": "(query1 / query2) / 1000000000"
+                    },
+                    {
+                      "alias": "Deployment CPU Utilization",
+                      "formula": "(query4 / query3) / 1000000000"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "queries": [
+                    {
+                      "query": "avg:kubernetes.cpu.usage.total{kube_cluster_name:${cluster},kube_namespace:${namespace},kube_service:${service}-*} by {pod_name}",
+                      "data_source": "metrics",
+                      "name": "query1"
+                    },
+                    {
+                      "query": "avg:kubernetes.cpu.limits{kube_cluster_name:${cluster},kube_namespace:${namespace},kube_service:${service}-*} by {pod_name}",
+                      "data_source": "metrics",
+                      "name": "query2"
+                    },
+                    {
+                      "query": "avg:kubernetes.cpu.usage.total{kube_cluster_name:${cluster},kube_namespace:${namespace},kube_service:${service}-*} by {kube_deployment}",
+                      "data_source": "metrics",
+                      "name": "query4"
+                    },
+                    {
+                      "query": "avg:kubernetes.cpu.limits{kube_cluster_name:${cluster},kube_namespace:${namespace},kube_service:${service}-*} by {kube_deployment}",
+                      "data_source": "metrics",
+                      "name": "query3"
+                    }
+                  ],
+                  "style": {
+                    "palette": "dog_classic",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "display_type": "line"
+                }
+              ],
+              "yaxis": {
+                "include_zero": false
+              },
+              "markers": []
+            },
+            "layout": {
+              "x": 3,
+              "y": 0,
+              "width": 9,
+              "height": 3
+            }
+          },
+          {
+            "definition": {
+              "title": "Instant Deployment Memory utilisation",
+              "title_size": "16",
+              "title_align": "left",
+              "type": "query_value",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "(query1 / query2)"
+                    }
+                  ],
+                  "conditional_formats": [
+                    {
+                      "comparator": ">",
+                      "palette": "white_on_red",
+                      "value": 0.8
+                    },
+                    {
+                      "comparator": ">=",
+                      "palette": "white_on_yellow",
+                      "value": 0.6
+                    },
+                    {
+                      "comparator": "<",
+                      "palette": "white_on_green",
+                      "value": 0.6
+                    }
+                  ],
+                  "response_format": "scalar",
+                  "queries": [
+                    {
+                      "query": "avg:kubernetes.memory.usage{kube_cluster_name:${cluster},kube_namespace:${namespace},service:${service}}",
+                      "data_source": "metrics",
+                      "name": "query1",
+                      "aggregator": "avg"
+                    },
+                    {
+                      "query": "avg:kubernetes.memory.limits{kube_cluster_name:${cluster},kube_namespace:${namespace},service:${service}}",
+                      "data_source": "metrics",
+                      "name": "query2",
+                      "aggregator": "avg"
+                    }
+                  ]
+                }
+              ],
+              "autoscale": true,
+              "precision": 2
+            },
+            "layout": {
+              "x": 0,
+              "y": 3,
+              "width": 3,
+              "height": 3
+            }
+          },
+          {
+            "definition": {
+              "title": "Pod/Deployment Memory Usage",
+              "title_size": "16",
+              "title_align": "left",
+              "show_legend": true,
+              "legend_layout": "vertical",
+              "legend_columns": ["avg", "min", "max", "value", "sum"],
+              "type": "timeseries",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "alias": "Pod Memory Usage",
+                      "formula": "query1 / query2"
+                    },
+                    {
+                      "alias": "Deployment Memory Usage",
+                      "formula": "query4 / query3"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "queries": [
+                    {
+                      "query": "avg:kubernetes.memory.usage{kube_cluster_name:${cluster},kube_namespace:${namespace},kube_service:${service}-*} by {pod_name}",
+                      "data_source": "metrics",
+                      "name": "query1"
+                    },
+                    {
+                      "query": "avg:kubernetes.memory.limits{kube_cluster_name:${cluster},kube_namespace:${namespace},kube_service:${service}-*} by {pod_name}",
+                      "data_source": "metrics",
+                      "name": "query2"
+                    },
+                    {
+                      "query": "avg:kubernetes.memory.limits{kube_cluster_name:${cluster},kube_namespace:${namespace},kube_service:${service}-*} by {kube_deployment}",
+                      "data_source": "metrics",
+                      "name": "query3"
+                    },
+                    {
+                      "query": "avg:kubernetes.memory.usage{kube_cluster_name:${cluster},kube_namespace:${namespace},kube_service:${service}-*} by {kube_deployment}",
+                      "data_source": "metrics",
+                      "name": "query4"
+                    }
+                  ],
+                  "style": {
+                    "palette": "dog_classic",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "display_type": "line"
+                }
+              ],
+              "yaxis": {
+                "include_zero": true,
+                "scale": "linear",
+                "label": "",
+                "min": "auto",
+                "max": "auto"
+              },
+              "markers": []
+            },
+            "layout": {
+              "x": 3,
+              "y": 3,
+              "width": 9,
+              "height": 3
+            }
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 14,
+        "width": 12,
+        "height": 7,
+        "is_column_break": true
+      }
+    },
+    {
+      "definition": {
+        "title": "K8s",
+        "type": "group",
+        "show_title": true,
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "title": "Percentage of Ready Pods",
+              "title_size": "16",
+              "title_align": "left",
+              "type": "query_value",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query4 / query3"
+                    }
+                  ],
+                  "conditional_formats": [
+                    {
+                      "comparator": "<",
+                      "palette": "white_on_red",
+                      "value": 0.5
+                    },
+                    {
+                      "comparator": ">=",
+                      "palette": "white_on_green",
+                      "value": 0.8
+                    },
+                    {
+                      "comparator": ">=",
+                      "palette": "white_on_yellow",
+                      "value": 0.5
+                    }
+                  ],
+                  "response_format": "scalar",
+                  "queries": [
+                    {
+                      "query": "sum:kubernetes_state.deployment.replicas_desired{kube_cluster_name:${cluster},kube_namespace:${namespace},kube_deployment:${service}-*}",
+                      "data_source": "metrics",
+                      "name": "query3",
+                      "aggregator": "avg"
+                    },
+                    {
+                      "query": "sum:kubernetes_state.deployment.replicas_available{kube_cluster_name:${cluster},kube_namespace:${namespace},kube_deployment:${service}-*}",
+                      "data_source": "metrics",
+                      "name": "query4",
+                      "aggregator": "avg"
+                    }
+                  ]
+                }
+              ],
+              "autoscale": true,
+              "precision": 2
+            },
+            "layout": {
+              "x": 0,
+              "y": 0,
+              "width": 3,
+              "height": 3
+            }
+          },
+          {
+            "definition": {
+              "title": "Number of Pods Running",
+              "title_size": "16",
+              "title_align": "left",
+              "type": "query_value",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1"
+                    }
+                  ],
+                  "conditional_formats": [
+                    {
+                      "comparator": "<",
+                      "palette": "white_on_red",
+                      "value": 1
+                    },
+                    {
+                      "comparator": ">",
+                      "palette": "white_on_green",
+                      "value": 0
+                    }
+                  ],
+                  "response_format": "scalar",
+                  "queries": [
+                    {
+                      "query": "avg:kubernetes.pods.running{kube_cluster_name:${cluster},kube_namespace:${namespace},kube_service:${service}-*}",
+                      "data_source": "metrics",
+                      "name": "query1",
+                      "aggregator": "avg"
+                    }
+                  ]
+                }
+              ],
+              "autoscale": true,
+              "precision": 2
+            },
+            "layout": {
+              "x": 3,
+              "y": 0,
+              "width": 3,
+              "height": 3
+            }
+          },
+          {
+            "definition": {
+              "title": "Pod Readiness Timeline",
+              "title_size": "16",
+              "title_align": "left",
+              "show_legend": true,
+              "legend_layout": "horizontal",
+              "legend_columns": ["avg", "min", "max", "value", "sum"],
+              "type": "timeseries",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "query1"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "queries": [
+                    {
+                      "query": "sum:kubernetes_state.pod.ready{kube_cluster_name:${cluster},kube_namespace:${namespace},pod_phase:running} by {pod_name}",
+                      "data_source": "metrics",
+                      "name": "query1"
+                    }
+                  ],
+                  "style": {
+                    "palette": "dog_classic",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "display_type": "line"
+                }
+              ],
+              "yaxis": {
+                "include_zero": true,
+                "scale": "linear",
+                "label": "",
+                "min": "auto",
+                "max": "auto"
+              },
+              "markers": []
+            },
+            "layout": {
+              "x": 6,
+              "y": 0,
+              "width": 6,
+              "height": 3
+            }
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 21,
+        "width": 12,
+        "height": 4
+      }
+    }
+  ],
+  "layout_type": "ordered",
+  "is_read_only": false,
+  "notify_list": [],
+  "reflow_type": "fixed",
+  "id": "ctb-fim-xau"
+}

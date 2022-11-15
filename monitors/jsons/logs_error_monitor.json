@@ -1,0 +1,45 @@
+{
+  "name": "[${service}:${environment}]Too many error messages in the log",
+  "type": "log alert",
+  "query": "logs(\"kube_cluster_name:${cluster} env:${environment} service:${service} status:error\").index(\"*\").rollup(\"count\").last(\"5m\") > 5",
+  "message": "Please check the logs. There are too many messages in error status.   \n@teams-alcl-test-alerts",
+  "tags": [
+    "alcl",
+    "alice",
+    "Air&LCL",
+    "terraform",
+    "env:${environment}",
+    "cluster:${cluster}",
+    "${service}"
+  ],
+  "options": {
+    "thresholds": {
+      "critical": 5,
+      "period": {
+        "digit": 5,
+        "name": "5 minute average",
+        "no_data_timeframe": 10,
+        "seconds": 300,
+        "tense": "last",
+        "text": "5 minutes",
+        "unit": "minutes",
+        "value": "last_5m"
+      },
+      "timeAggregator": "avg",
+      "warning": 3,
+      "comparison": ">"
+    },
+    "enable_logs_sample": true,
+    "notify_audit": false,
+    "restriction_query": null,
+    "renotify_statuses": ["alert"],
+    "renotify_interval": 30,
+    "include_tags": true,
+    "silenced": {},
+    "notify_no_data": false,
+    "groupby_simple_monitor": false,
+    "escalation_message": "[Renotification] Please check the logs. There are too many messages in error status. Do not forget to mute the alert if needed.  \n@${channel}",
+    "locked": false
+  },
+  "priority": 2
+}
